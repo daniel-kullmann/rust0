@@ -1,0 +1,12 @@
+[package]
+name = "rust0"
+version = "0.1.0"
+authors = ["Daniel Kullmann <daniel.kullmann@sap.com>"]
+edition = "2018"
+
+[dependencies]
+clap = "2.32.0"
+hyper = "0.12"
+rust-ini = "0.13"
+tokio = "0.1.13"
+shellexpand = "1.0.0"
