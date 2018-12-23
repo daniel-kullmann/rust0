@@ -16,6 +16,7 @@ struct Configuration {
     gpx_base: Option<String>
 }
 
+
 const PHRASE: &str = "Hello, World!";
 
 fn hello_world(_req: Request<Body>) -> Response<Body> {
@@ -33,7 +34,7 @@ fn parse_config_file(config_file_name: &Option<String>) -> Configuration {
         },
         Some(file_name) => {
             let config = Ini::load_from_file(file_name)
-                .expect("Config file name could not be found");
+                .expect(&format!("Config file {} could not be found", file_name)[..]);
             let section: Option<String> = None;
             let section = config.section(section).unwrap();
             let tile_base: Option<&String> = section.get("TileBase");
@@ -99,11 +100,23 @@ impl Configuration {
 
 fn main() {
 
-    let config_cli = parse_command_line();
-    let config_file = parse_config_file(&config_cli.config_file_name);
-    let config = config_cli.merge(&config_file);
+    let default_configuration_for_config_file = Configuration {
+        config_file_name: expand_env(Some(&String::from("${HOME}/.config/simple-offline-map/config.ini"))),
+        tile_base: None,
+        gpx_base: None
+    };
 
-    println!("{:?}", config);
+    let default_configuration_for_others = Configuration {
+        config_file_name: None,
+        tile_base: expand_env(Some(&String::from("${HOME}/.local/share/simple-offline-map/gpx"))),
+        gpx_base: expand_env(Some(&String::from("${HOME}/.local/share/simple-offline-map/tiles")))
+    };
+
+    let config_cli = parse_command_line().merge(&default_configuration_for_config_file);
+    let config_file = parse_config_file(&config_cli.config_file_name);
+    let config = config_cli.merge(&config_file).merge(&default_configuration_for_others);
+
+    println!("{:#?}", config);
 
     // This is our socket address...
     let addr = ([127, 0, 0, 1], 3000).into();
