@@ -1,0 +1,45 @@
+#!/bin/bash
+
+set -e -u
+
+DIR="$(dirname "$0")"
+FILE_BASE="$DIR"
+
+function wait_for_changes() {
+    inotifywait -q -e modify -r "$FILE_BASE/src" "$FILE_BASE/Cargo.toml"
+}
+
+function start_server() {
+    (
+        cd "$FILE_BASE"
+        while ! (cargo build); do
+            wait_for_changes
+            sleep 1
+        done
+    )
+    cargo run &
+    PID=$!
+    echo "rust server started ($PID)"
+}
+
+function stop_server() {
+    if test -n "$PID"; then
+        kill "$PID"
+        echo "Killed old server"
+    fi
+}
+
+cd "$FILE_BASE"
+
+start_server "$@"
+
+trap stop_server INT
+
+while wait_for_changes; do
+    echo "changes detected; restarting node server ($PID)"
+    stop_server
+    sleep 0.5
+    date
+    start_server "$@"
+done
+
