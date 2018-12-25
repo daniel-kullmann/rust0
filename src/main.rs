@@ -4,10 +4,12 @@ extern crate ini;
 extern crate shellexpand;
 
 use clap::{App, Arg};
-use hyper::{Body, Request, Response, Server};
+use hyper::{Body, Request, Response, Server, StatusCode};
 use hyper::rt::Future;
 use hyper::service::service_fn_ok;
 use ini::Ini;
+use std::fs::create_dir_all;
+use std::path::Path;
 
 #[derive(Debug)]
 struct Configuration {
@@ -16,11 +18,26 @@ struct Configuration {
     gpx_base: Option<String>
 }
 
+//fn tile_base<'a>(config: &'a Configuration) -> &'a str {
+//    config.tile_base.expect("TileBase should have been configured").as_str()
+//}
 
-const PHRASE: &str = "Hello, World!";
-
-fn hello_world(_req: Request<Body>) -> Response<Body> {
-    Response::new(Body::from(PHRASE))
+fn serve(req: Request<Body>) -> Response<Body> {
+//fn serve(req: Request<Body>, config: &Configuration) -> Response<Body> {
+    println!("{:#?}", req.uri());
+    let uri = req.uri().to_string();
+    if uri.starts_with("/tiles") {
+        //create_dir_all(Path::new(tile_base(&config)));
+        Response::new(Body::from("tiles"))
+    } else if uri.starts_with("/api/gpx/") {
+        Response::new(Body::from("gpx"))
+    } else if uri.starts_with("/api/settings/") {
+        Response::new(Body::from("settings"))
+    } else {
+        let mut response = Response::builder();
+        response.status(StatusCode::NOT_FOUND);
+        response.body(Body::empty()).unwrap()
+    }
 }
 
 fn expand_env(option: Option<&String>) -> Option<String> {
@@ -125,14 +142,14 @@ fn main() {
     // creates one from our `hello_world` function.
     let new_svc = || {
         // service_fn_ok converts our function into a `Service`
-        service_fn_ok(hello_world)
+        service_fn_ok(|req| serve(req) )
     };
 
     let server = Server::bind(&addr)
         .serve(new_svc)
         .map_err(|e| eprintln!("server error: {}", e));
 
-    print!("server started at http://localhost:3000");
+    println!("server started at http://localhost:3000");
 
     // Run this server for... forever!
     hyper::rt::run(server);
