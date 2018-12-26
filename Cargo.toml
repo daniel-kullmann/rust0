@@ -6,6 +6,8 @@ edition = "2018"
 
 [dependencies]
 clap = "2.32.0"
+futures = "*"
+http = "*"
 hyper = "0.12"
 rust-ini = "0.13"
 serde_json = "1.0"
