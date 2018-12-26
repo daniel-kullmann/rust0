@@ -9,7 +9,8 @@ use hyper::{Body, Request, Response, Server, StatusCode};
 use hyper::rt::Future;
 use hyper::service::service_fn_ok;
 //use serde_json::{Value, Error};
-use std::fs::create_dir_all;
+use std::fs::{File, create_dir_all};
+use std::io::prelude::*;
 use std::ops::Deref;
 use std::path::Path;
 use std::sync::Arc;
@@ -18,22 +19,37 @@ mod config;
 
 
 fn serve(req: Request<Body>, config: &config::FinalConfiguration) -> Response<Body> {
-    println!("{:#?}", req.uri());
     let uri = req.uri().to_string();
     if uri.starts_with("/tiles") {
         match create_dir_all(Path::new(config.tile_base.as_str())) {
             Ok(_) => (),
             Err(e) => println!("Error: {}", e)
         }
-        Response::new(Body::from("tiles"))
+        let rest: String = uri.chars().skip(7).collect();
+        let full_file = format!("{}/{}", config.tile_base, rest);
+        println!("file: {}", full_file);
+        match File::open(full_file) {
+            Ok(mut file) => {
+                let mut contents = vec![];
+                match file.read_to_end(&mut contents) {
+                    Ok(_) =>
+                        Response::new(Body::from(contents)),
+                    Err(_) =>
+                        Response::new(Body::from("ooh no!"))
+                }
+            }
+            Err(_) => {
+                Response::new(Body::from("get tile from osm"))
+            }
+        }
     } else if uri.starts_with("/api/gpx/") {
         Response::new(Body::from("gpx"))
     } else if uri.starts_with("/api/settings/") {
         Response::new(Body::from("settings"))
     } else {
         let mut response = Response::builder();
-        response.status(StatusCode::NOT_FOUND);
-        response.body(Body::empty()).unwrap()
+        let response = response.status(StatusCode::NOT_FOUND);
+        response.body(Body::from("404 not found")).unwrap()
     }
 }
 
