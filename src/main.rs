@@ -28,15 +28,17 @@ fn serve(req: Request<Body>, config: &config::FinalConfiguration) -> Response<Bo
         let rest: String = uri.chars().skip(7).collect();
         let full_file = format!("{}/{}", config.tile_base, rest);
         println!("file: {}", full_file);
-        match File::open(full_file) {
+        match File::open(&full_file) {
             Ok(mut file) => {
                 let mut contents = vec![];
                 match file.read_to_end(&mut contents) {
-                    Ok(_) =>
-                        println!("INFO: Served {}", full_file)
-                        Response::new(Body::from(contents)),
-                    Err(_) =>
+                    Ok(_) => {
+                        println!("INFO: Served {}", full_file);
+                        Response::new(Body::from(contents))
+                    },
+                    Err(_) => {
                         Response::new(Body::from("ooh no!"))
+                    }
                 }
             }
             Err(_) => {
