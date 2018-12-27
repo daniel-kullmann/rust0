@@ -4,11 +4,11 @@ extern crate ini;
 extern crate serde_json;
 extern crate shellexpand;
 
-use futures;
 use hyper::{Body, Request, Response, Server, StatusCode};
 use hyper::rt::Future;
 use hyper::service::service_fn_ok;
 //use serde_json::{Value, Error};
+use reqwest;
 use std::fs::{File, create_dir_all};
 use std::io::prelude::*;
 use std::ops::Deref;
@@ -33,13 +33,40 @@ fn serve(req: Request<Body>, config: &config::FinalConfiguration) -> Response<Bo
                 let mut contents = vec![];
                 match file.read_to_end(&mut contents) {
                     Ok(_) =>
+                        println!("INFO: Served {}", full_file)
                         Response::new(Body::from(contents)),
                     Err(_) =>
                         Response::new(Body::from("ooh no!"))
                 }
             }
             Err(_) => {
-                Response::new(Body::from("get tile from osm"))
+                //let client = hyper::Client::configure()
+                //    .keep_alive(true)
+                //    .build(&handle);
+                let parts: Vec<&str> = uri.split("/").collect();
+                match parts.as_slice() {
+                    ["", "tiles", s, z, x, y] => {
+                        let osm_url: String = format!("https://{}.tile.openstreetmap.org/{}/{}/{}", s, z, x, y);
+                        println!("INFO: Fetch from OSM: {:?}", osm_url);
+                        let response = reqwest::get(osm_url.as_str());
+                        match response {
+                            Ok(mut response) => {
+                                let mut buf: Vec<u8> = vec![];
+                                match response.copy_to(&mut buf) {
+                                    Ok(_) => Response::new(Body::from(buf)),
+                                    Err(_err) => Response::new(Body::from("ERROR: could not copy"))
+                                }
+                            },
+                            Err(err) => {
+                                println!("{:?}", err);
+                                Response::new(Body::from("TODO: get tile from osm"))
+                            }
+                        }
+                    },
+                    _ => {
+                        Response::new(Body::from("ERROR: url wrong (get tile from osm)"))
+                    }
+                }
             }
         }
     } else if uri.starts_with("/api/gpx/") {

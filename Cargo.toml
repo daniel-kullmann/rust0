@@ -6,9 +6,9 @@ edition = "2018"
 
 [dependencies]
 clap = "2.32.0"
-futures = "*"
-http = "*"
+http = "0.1.14"
 hyper = "0.12"
+reqwest = "0.9.5"
 rust-ini = "0.13"
 serde_json = "1.0"
 shellexpand = "1.0.0"
