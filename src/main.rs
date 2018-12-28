@@ -1,6 +1,9 @@
 extern crate clap;
 extern crate hyper;
 extern crate ini;
+extern crate r2d2;
+extern crate r2d2_sqlite;
+extern crate rusqlite;
 extern crate serde_json;
 extern crate shellexpand;
 
@@ -8,6 +11,7 @@ use hyper::{Body, Request, Response, Server, StatusCode};
 use hyper::rt::Future;
 use hyper::service::service_fn_ok;
 //use serde_json::{Value, Error};
+use r2d2_sqlite::SqliteConnectionManager;
 use reqwest;
 use std::fs::{File, create_dir_all};
 use std::io::prelude::*;
@@ -84,17 +88,25 @@ fn serve(req: Request<Body>, config: &config::FinalConfiguration) -> Response<Bo
 
 fn main() {
 
-    let config = config::get_config();
+    let config = Arc::new(config::get_config());
 
-    let state = Arc::new(config);
+    let manager = SqliteConnectionManager::file(&config.db_file);
+    let pool = r2d2::Pool::new(manager).unwrap();
 
     // This is our socket address...
     let addr = ([127, 0, 0, 1], 3000).into();
 
     //    let service = MapService::new();
     let service = move || {
-        let state = state.clone();
-        service_fn_ok(move |req| serve(req, state.deref()))
+        let pool = pool.clone();
+        let config = config.clone();
+        service_fn_ok(move |req| {
+            let state = State {
+                config: &config.deref(),
+                connection: pool.get().unwrap()
+            };
+            serve(req, &state)
+        })
     };
 
     let server = Server::bind(&addr)
