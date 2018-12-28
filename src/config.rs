@@ -5,27 +5,31 @@ use ini::Ini;
 struct Configuration {
     config_file_name: Option<String>,
     tile_base: Option<String>,
-    gpx_base: Option<String>
+    gpx_base: Option<String>,
+    db_file: Option<String>
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct FinalConfiguration {
     pub config_file_name: String,
     pub tile_base: String,
-    pub gpx_base: String
+    pub gpx_base: String,
+    pub db_file: String
 }
 
 pub fn get_config() -> FinalConfiguration {
     let default_configuration_for_config_file = Configuration {
         config_file_name: expand_env(Some(&String::from("${HOME}/.config/simple-offline-map/config.ini"))),
         tile_base: None,
-        gpx_base: None
+        gpx_base: None,
+        db_file: None
     };
 
     let default_configuration_for_others = Configuration {
         config_file_name: None,
         tile_base: expand_env(Some(&String::from("${HOME}/.local/share/simple-offline-map/gpx"))),
-        gpx_base: expand_env(Some(&String::from("${HOME}/.local/share/simple-offline-map/tiles")))
+        gpx_base: expand_env(Some(&String::from("${HOME}/.local/share/simple-offline-map/tiles"))),
+        db_file: expand_env(Some(&String::from("${HOME}/.local/share/simple-offline-map/db.sqlite3")))
     };
 
     let config_cli = parse_command_line().merge(&default_configuration_for_config_file);
@@ -39,7 +43,8 @@ impl From<Configuration> for FinalConfiguration {
         FinalConfiguration{
             config_file_name: v.config_file_name.expect("ConfigFileName should have been configured"),
             tile_base: v.tile_base.expect("TileBase should have been configured"),
-            gpx_base: v.gpx_base.expect("GpxBase should have been configured")
+            gpx_base: v.gpx_base.expect("GpxBase should have been configured"),
+            db_file: v.db_file.expect("DbFile should have been configured")
         }
     }
 }
@@ -51,7 +56,7 @@ fn expand_env(option: Option<&String>) -> Option<String> {
 fn parse_config_file(config_file_name: &Option<String>) -> Configuration {
     match config_file_name {
         None => {
-            Configuration{ config_file_name: None, tile_base: None, gpx_base: None }
+            Configuration{ config_file_name: None, tile_base: None, gpx_base: None , db_file: None }
         },
         Some(file_name) => {
             let config = Ini::load_from_file(file_name)
@@ -60,10 +65,12 @@ fn parse_config_file(config_file_name: &Option<String>) -> Configuration {
             let section = config.section(section).unwrap();
             let tile_base: Option<&String> = section.get("TileBase");
             let gpx_base: Option<&String> = section.get("GpxBase");
+            let db_file: Option<&String> = section.get("DbFile");
             Configuration {
                 config_file_name: None,
                 tile_base: expand_env(tile_base),
-                gpx_base: expand_env(gpx_base)
+                gpx_base: expand_env(gpx_base),
+                db_file: expand_env(db_file),
             }
         }
     }
@@ -90,12 +97,18 @@ fn parse_command_line() -> Configuration {
              .long("gpx-base")
              .takes_value(true)
              .help("Base directory of GPX file store"))
+        .arg(Arg::with_name("db-file")
+             .short("d")
+             .long("db-file")
+             .takes_value(true)
+             .help("File where Sqlite3 database is stored"))
         .get_matches();
 
     let config_file_name = matches.value_of("config").map(|value| String::from(value));
     let tile_base = matches.value_of("tile-base").map(|value| String::from(value));
     let gpx_base = matches.value_of("gpx-base").map(|value| String::from(value));
-    return Configuration{config_file_name, tile_base, gpx_base};
+    let db_file = matches.value_of("db-file").map(|value| String::from(value));
+    return Configuration{config_file_name, tile_base, gpx_base, db_file};
 }
 
 impl Configuration {
@@ -113,7 +126,11 @@ impl Configuration {
             gpx_base: match self.gpx_base {
                 Some(_) => self.gpx_base.clone(),
                 None => other.gpx_base.clone()
-            }
+            },
+            db_file: match self.db_file {
+                Some(_) => self.db_file.clone(),
+                None => other.db_file.clone()
+            },
         }
     }
 }
