@@ -1,11 +1,11 @@
-use hyper::{Body, Response};
+use hyper::{Body, Request, Response, StatusCode};
 use serde_json;
 use std::fs::{File, read_dir};
 use std::io::prelude::*;
 
 use crate::state::State;
 
-pub fn serve_gpx(uri: &String, state: &State) -> Response<Body> {
+pub fn serve_gpx(req: &Request<Body>, uri: &String, state: &State) -> Response<Body> {
     if uri.starts_with("/api/gpx/get/") {
         let file_name = &uri[13..];
         let full_file = format!("{}/{}", &state.config.gpx_base, file_name);
@@ -37,6 +37,7 @@ pub fn serve_gpx(uri: &String, state: &State) -> Response<Body> {
         }
     } else if uri.starts_with("/api/gpx/save") {
         // TODO finish code
+        println!("{:?}", req);
         Response::new(Body::from("gpx save"))
     } else if uri == "/api/gpx/" {
         match read_dir(&state.config.gpx_base) {

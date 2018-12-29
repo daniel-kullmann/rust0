@@ -19,7 +19,7 @@ fn serve(req: Request<Body>, state: &State) -> Response<Body> {
     if uri.starts_with("/tiles") {
         serve_tile(&uri, state)
     } else if uri.starts_with("/api/gpx/") {
-        serve_gpx(&uri, state)
+        serve_gpx(&req, &uri, state)
     } else if uri.starts_with("/api/settings/") {
         Response::new(Body::from("settings"))
     } else {
