@@ -39,7 +39,7 @@ while wait_for_changes; do
     echo "changes detected; restarting node server ($PID)"
     stop_server
     sleep 0.5
-    date
+    echo "####" $(date)
     start_server "$@"
 done
 
