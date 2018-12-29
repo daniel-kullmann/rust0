@@ -1,5 +1,6 @@
-use hyper::{Body, Response, StatusCode};
-use std::fs::{File, create_dir_all, read_dir};
+use hyper::{Body, Response};
+use reqwest;
+use std::fs::{File, create_dir_all};
 use std::io::prelude::*;
 use std::path::Path;
 
