@@ -1,4 +1,5 @@
 use hyper::{Body, Response};
+use serde_json;
 use std::fs::read_dir;
 
 use crate::state::State;
@@ -15,13 +16,10 @@ pub fn serve_gpx(uri: &String, state: &State) -> Response<Body> {
             Err(_why) => {
                 Response::new(Body::from("gpx list"))
             },
-            Ok(_paths) => {
+            Ok(paths) => {
                 // TODO finish code
-                //let paths_slice : &[&str] = paths.map(|v| v.unwrap().path().file_name()).into();
-                //let _a: Vec<&str> = paths.map(|v| v.unwrap().path().file_name().unwrap().to_str().unwrap()).collect();
-                //for path in paths {
-                //    println!("{}", path.unwrap().path().file_name().and_then(|v| v.to_str()).unwrap());
-                //}
+                let paths : Vec<String> = paths.map(|v| v.unwrap().file_name().to_str().unwrap().to_string()).collect();
+                println!("{:?}", serde_json::to_string(&paths).unwrap());
                 Response::new(Body::from("gpx list"))
             }
         }
