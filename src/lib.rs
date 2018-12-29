@@ -9,7 +9,8 @@ extern crate serde_json;
 extern crate shellexpand;
 
 
+pub mod api;
 pub mod config;
 pub mod state;
 pub mod tiles;
-pub mod api;
+pub mod util;
