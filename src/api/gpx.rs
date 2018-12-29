@@ -40,14 +40,19 @@ pub fn serve_gpx(uri: &String, state: &State) -> Response<Body> {
         Response::new(Body::from("gpx save"))
     } else if uri == "/api/gpx/" {
         match read_dir(&state.config.gpx_base) {
-            Err(_why) => {
-                Response::new(Body::from("gpx list"))
+            Err(why) => {
+                println!("{:?}", why);
+                let mut response = Response::builder();
+                response.status(StatusCode::NOT_FOUND);
+                Response::new(Body::from(""))
             },
             Ok(paths) => {
                 // TODO finish code
                 let paths : Vec<String> = paths.map(|v| v.unwrap().file_name().to_str().unwrap().to_string()).collect();
-                println!("{:?}", serde_json::to_string(&paths).unwrap());
-                Response::new(Body::from("gpx list"))
+                let json = serde_json::to_string(&paths).unwrap();
+                let mut response = Response::builder();
+                response.header("Content-Type", "application/json").status(StatusCode::OK);
+                response.body(Body::from(json)).unwrap()
             }
         }
     } else {
