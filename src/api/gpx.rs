@@ -4,7 +4,7 @@ use std::fs::{File, read_dir};
 use std::io::prelude::*;
 
 use crate::state::State;
-use crate::util::handle_io_error;
+use crate::util::handle_error;
 
 pub fn serve_gpx(req: &Request<Body>, uri: &String, state: &State) -> Response<Body> {
     if uri.starts_with("/api/gpx/get/") {
@@ -12,11 +12,11 @@ pub fn serve_gpx(req: &Request<Body>, uri: &String, state: &State) -> Response<B
         let full_file = format!("{}/{}", &state.config.gpx_base, file_name);
         let fh = File::open(full_file);
         match fh {
-            Err(why) => handle_io_error(StatusCode::NOT_FOUND, why),
+            Err(why) => handle_error(StatusCode::NOT_FOUND, &why),
             Ok(mut fh) => {
                 let mut content = String::new();
                 match fh.read_to_string(&mut content) {
-                    Err(why) => handle_io_error(StatusCode::NOT_FOUND, why),
+                    Err(why) => handle_error(StatusCode::NOT_FOUND, &why),
                     Ok(_) => {
                         let mut response = Response::builder();
                         response.header("Content-Type", "text/xml").status(StatusCode::OK);
@@ -31,7 +31,7 @@ pub fn serve_gpx(req: &Request<Body>, uri: &String, state: &State) -> Response<B
         Response::new(Body::from("gpx save"))
     } else if uri == "/api/gpx/" {
         match read_dir(&state.config.gpx_base) {
-            Err(why) => handle_io_error(StatusCode::NOT_FOUND, why),
+            Err(why) => handle_error(StatusCode::NOT_FOUND, &why),
             Ok(paths) => {
                 // TODO finish code
                 let paths : Vec<String> = paths.map(|v| v.unwrap().file_name().to_str().unwrap().to_string()).collect();
