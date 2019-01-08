@@ -6,6 +6,7 @@ edition = "2018"
 
 [dependencies]
 clap = "2.32.0"
+futures = "0.1.25"
 http = "0.1.14"
 hyper = "0.12"
 reqwest = "0.9.5"

@@ -1,4 +1,5 @@
 extern crate clap;
+extern crate futures;
 extern crate hyper;
 extern crate ini;
 extern crate r2d2;
