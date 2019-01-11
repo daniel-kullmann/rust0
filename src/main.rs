@@ -17,7 +17,6 @@ use rust0::tiles::serve_tile;
 
 fn serve(req: Request<Body>, state: &State) -> Response<Body> {
     let uri = req.uri().to_string();
-    println!("{:?}", req);
     if uri.starts_with("/tiles") {
         serve_tile(&uri, state)
     } else if uri.starts_with("/api/gpx/") {
