@@ -27,14 +27,12 @@ pub fn serve_get_all_settings(state: &State) -> IronResult<Response> {
 }
 
 pub fn serve_set_all_settings(req: &mut Request, state: &State) -> IronResult<Response> {
-    println!("set all settings");
     let body = req.get::<bodyparser::Json>();
     match body {
         Ok(Some(body)) => {
             match body {
                 serde_json::Value::Object(map) => {
                     for (key, value) in &map {
-                        println!("{}: {}", key, value);
                         state.connection.execute("REPLACE INTO setting (name, value) VALUES (?, ?)",&[key, &value.to_string().as_str()]).unwrap();
                     }
                 }
