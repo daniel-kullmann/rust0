@@ -7,7 +7,7 @@ FILE_BASE="$DIR"
 ARGS="$@"
 
 function wait_for_changes() {
-    inotifywait -q -e modify -r "$FILE_BASE/src" "$FILE_BASE/Cargo.toml"
+    inotifywait -q -e modify -r "$FILE_BASE/src" "$FILE_BASE/Cargo.toml" "$FILE_BASE/build.rs"
 }
 
 function start_server() {

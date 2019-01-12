@@ -1,9 +1,12 @@
 extern crate iron;
+extern crate mime_guess;
 extern crate r2d2_sqlite;
 extern crate rust0;
 
+use iron::mime::Mime;
 use iron::prelude::*;
 use iron::status;
+use mime_guess::guess_mime_type;
 use std::ops::Deref;
 use std::sync::Arc;
 use r2d2_sqlite::SqliteConnectionManager;
@@ -14,6 +17,7 @@ use rust0::api::settings::{serve_get_all_settings, serve_set_all_settings};
 use rust0::state::State;
 use rust0::tiles::serve_tile;
 use rust0::util::handle_error;
+use rust0::files::file_content;
 
 
 fn serve(req: &mut Request, state: &State) -> IronResult<Response> {
@@ -27,7 +31,16 @@ fn serve(req: &mut Request, state: &State) -> IronResult<Response> {
     } else if uri.starts_with("/api/settings/") {
         serve_get_all_settings(state)
     } else {
-        handle_error(status::NotFound, &"")
+        let static_file = file_content(&uri);
+        match static_file {
+            Some(content) => {
+                let mime_type = guess_mime_type(&uri).to_string();
+                let content_type = mime_type.parse::<Mime>().expect("Failed to parse content type");
+                println!("Serving static file {} as {}", uri, mime_type);
+                Ok(Response::with((content_type, status::Ok, content)))
+            }
+            None => handle_error(status::NotFound, &""),
+        }
     }
 }
 

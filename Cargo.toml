@@ -2,12 +2,14 @@
 name = "rust0"
 version = "0.1.0"
 authors = ["Daniel Kullmann <daniel.kullmann@gmx.de>"]
-edition = "2018"
+#edition = "2018"
+#build = "build.rs"
 
 [dependencies]
 bodyparser = "0.8.0"
 clap = "2.32.0"
 iron = "0.6.0"
+mime_guess = "2.0.0-alpha.6"
 reqwest = "0.9.5"
 rust-ini = "0.13"
 serde = "1.0.82"
@@ -17,3 +19,7 @@ shellexpand = "1.0.0"
 r2d2 = "0.8.3"
 r2d2_sqlite = "0.6.0"
 rusqlite = "0.14.0"
+
+[build-dependencies]
+walkdir = "2"
+#compress = "0.1.2"

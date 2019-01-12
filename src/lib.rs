@@ -15,6 +15,7 @@ extern crate shellexpand;
 
 pub mod api;
 pub mod config;
+pub mod files;
 pub mod state;
 pub mod tiles;
 pub mod util;
