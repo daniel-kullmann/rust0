@@ -2,6 +2,7 @@ use iron::mime::Mime;
 use iron::prelude::*;
 use iron::status;
 use serde_json;
+use std::collections::HashMap;
 
 use crate::state::State;
 
@@ -21,7 +22,11 @@ pub fn serve_get_all_settings(state: &State) -> IronResult<Response> {
             value: row.get(1),
         }).unwrap();
     let settings: Vec<Setting> = settings_iter.map(|item| item.unwrap()).collect();
-    let json = serde_json::to_string(&settings).unwrap();
+    let mut result = HashMap::new();
+    for setting in settings {
+        result.insert(setting.name, setting.value);
+    }
+    let json = serde_json::to_string(&result).unwrap();
     let content_type = "application/json".parse::<Mime>().expect("Failed to parse content type");
     Ok(Response::with((content_type, status::Ok, json)))
 }
