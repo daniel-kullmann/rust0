@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8"/>
+        <link rel="stylesheet" href="./css/app.css" crossorigin=""/>
+        <link rel="stylesheet" href="./css/leaflet.css" crossorigin=""/>
+        <link rel="stylesheet" href="./css/leaflet-sidebar.css" />
+        <link rel="stylesheet" href="./css/font-awesome.min.css" />
+        <script src="./js/jquery.js"></script>
+        <script src="./js/leaflet-src.js" crossorigin=""></script>
+        <script src="./js/leaflet-sidebar.js" crossorigin=""></script>
+        <script src="./code.js">
+        </script>
+    </head>
+    <body class="body">
+        <div id="sidebar" class="sidebar collapsed">
+            <div class="sidebar-tabs">
+                <ul role="tablist">
+                    <li><a href="#home" role="tab"><i class="fa fa-bars"></i></a></li>
+                    <li><a href="#tracks" role="tab"><i class="fa fa-flag"></i></a></li>
+                </ul>
+
+                <ul role="tablist">
+                    <li><a href="#settings" role="tab"><i class="fa fa-gear"></i></a></li>
+                </ul>
+            </div>
+
+            <div class="sidebar-content">
+                <div class="sidebar-pane" id="home">
+                    <h1 class="sidebar-header">
+                        Info
+                        <span class="sidebar-close"><i class="fa fa-caret-left"></i></span>
+                    </h1>
+
+                    <span id="error-message" style="text-color: red;"></span><br/>
+                    <span id="map-info"></span><br/>
+                    <span id="location-info"></span><br/>
+                    <span id="map-scan-info"></span><br/>
+                    <button id="start-track-creation" onClick="start_track_creation()">Create new GPX track</button>
+                    <div id="track-in-creation" style="display: none;">
+                        <button id="stop-track-creation" onClick="stop_track_creation();">Finish GPX track</button>
+                        <button id="stop-track-creation" onClick="cancel_track_creation();">Cancel GPX track</button><br/>
+                        <label for="track-in-creation-name">Name: </label>
+                        <input type="text" name="track-in-creation-name" size="10"/><br/>
+                        <label for="track-in-creation-date">Date: </label>
+                        <input type="text" name="track-in-creation-date" size="10"/><br/>
+                        <label for="track-in-creation-description">Description: </label><br/>
+                        <textarea name="track-in-creation-description" size="10"></textarea><br/>
+                        <span id="track-in-creation-distance"></span><br/>
+                        <ul id="track-in-creation-points">
+                        </ul>
+                    </div>
+                </div>
+                <div class="sidebar-pane" id="tracks">
+                    <h1 class="sidebar-header">
+                        Tracks
+                        <span class="sidebar-close"><i class="fa fa-caret-left"></i></span>
+                    </h1>
+
+                    <button onClick="bound_map_by_gpx_tracks();">Show all checked tracks on map</button>
+                    <button onClick="load_gpx_track_list();">Reload list of known GPX tracks</button>
+                    <span id="gpx-list"/>
+                </div>
+                <div class="sidebar-pane" id="settings">
+                    <h1 class="sidebar-header">
+                        Settings
+                        <span class="sidebar-close"><i class="fa fa-caret-left"></i></span>
+                    </h1>
+
+                    <input type="checkbox" name="toggle-map-scan" onClick="toggle_map_scan(this.checked);"/>Map scan of the displayed area (zoom: <span name="zoom_min"></span> - <span name="zoom_max"></span>)
+                    <h3>Persistent Settings</h3>
+                    <form name="settings" method="POST">
+                        <label for="base_tile_url">URL pattern for tiles</label>
+                        <input type="text" name="base_tile_url" size="30" />
+                        <br/>
+                        Presets for above:
+                        <select>
+                            <option>--</option>
+                            <option onClick="choose_osm_as_tiles_url();">OSM</option>
+                            <option onClick="choose_local_cache_as_tiles_url();">Local Cache</option>
+                        </select>
+                        <br/>
+                        <button type="button" onClick="save_settings();" name="Submit">Submit</button>
+                        <button type="button" name="Cancel" onClick="restore_settings(false);">Cancel</button>
+                        <br/>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div id="map" class="sidebar-map"/>
+    </body>
+</html>

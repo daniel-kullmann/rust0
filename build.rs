@@ -12,7 +12,7 @@ use walkdir::WalkDir;
 fn main() {
     let target_dir = env::var("OUT_DIR").unwrap();
     let target_file = format!("{}/{}", &target_dir, "binary_data.rs");
-    let base_dir = "../maps0/frontend";
+    let base_dir = "./frontend";
 
     let mut paths = Vec::new();
     let mut source_modified: SystemTime = metadata("build.rs").unwrap().modified().unwrap();
