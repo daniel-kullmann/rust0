@@ -4,6 +4,7 @@ set -e -u
 
 DIR="$(dirname "$0")"
 FILE_BASE="$DIR"
+ARGS="$@"
 
 function wait_for_changes() {
     inotifywait -q -e modify -r "$FILE_BASE/src" "$FILE_BASE/Cargo.toml"
@@ -12,7 +13,10 @@ function wait_for_changes() {
 function start_server() {
     (
         cd "$FILE_BASE"
-        while ! (cargo build); do
+        # Because Emacs runs cargo as well, this cargo will wait for the other
+        # cargo to finish. I don't want to wait, so I kill the other rustc process.
+        killall rustc &> /dev/null || true
+        while ! (cargo build $ARGS); do
             wait_for_changes
             sleep 1
         done
@@ -36,7 +40,7 @@ start_server "$@"
 trap stop_server INT
 
 while wait_for_changes; do
-    echo "changes detected; restarting node server ($PID)"
+    echo "changes detected; restarting rust server ($PID)"
     stop_server
     sleep 0.5
     echo "####" $(date)
