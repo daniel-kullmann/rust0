@@ -42,7 +42,7 @@ pub fn serve_tile(uri: &String, state: &State) -> IronResult<Response>
                         Ok(mut response) => {
                             let mut buf: Vec<u8> = vec![];
                             match File::create(&full_file) {
-                                Err(why) => println!("ERROR: could not create tile file: {:?}", why),
+                                Err(why) => println!("ERROR: could not create tile file {}: {:?}", full_file, why),
                                 Ok(mut file) => {
                                     match file.write_all(&buf[..]) {
                                         Err(why) => println!("ERROR: could not save tile file: {:?}", why),
