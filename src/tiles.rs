@@ -41,6 +41,8 @@ pub fn serve_tile(uri: &String, state: &State) -> IronResult<Response>
                         Err(why) => handle_error(status::NotFound, &why),
                         Ok(mut response) => {
                             let mut buf: Vec<u8> = vec![];
+
+                            let copy_to_result = response.copy_to(&mut buf);
                             match File::create(&full_file) {
                                 Err(why) => println!("ERROR: could not create tile file {}: {:?}", full_file, why),
                                 Ok(mut file) => {
@@ -52,10 +54,10 @@ pub fn serve_tile(uri: &String, state: &State) -> IronResult<Response>
                                 }
                             };
 
-                            match response.copy_to(&mut buf) {
+                            match copy_to_result {
                                 Err(why) => handle_error(status::NotFound, &why),
                                 Ok(_) => {
-                                    println!("INFO: Served {}", full_file);
+                                    println!("INFO: Served fetched {}", full_file);
                                     let content_type = "image/png".parse::<Mime>().expect("Failed to parse content type");
                                     Ok(Response::with((content_type, status::Ok, buf)))
                                 }
