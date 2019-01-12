@@ -11,6 +11,7 @@ use crate::tiles::serve_tile;
 use crate::util::handle_error;
 
 fn serve_static_content(uri: &String) -> IronResult<Response> {
+    let uri: String = if uri == "/" { String::from("/index.html") } else  { uri.to_string() };
     let static_file = file_content(&uri);
     match static_file {
         Some(content) => {
@@ -19,7 +20,7 @@ fn serve_static_content(uri: &String) -> IronResult<Response> {
             println!("Serving static file {} as {}", uri, mime_type);
             Ok(Response::with((content_type, status::Ok, content)))
         }
-        None => handle_error(status::NotFound, &""),
+        None => handle_error(status::NotFound, &uri),
     }
 }
 
