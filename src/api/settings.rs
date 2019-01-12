@@ -1,10 +1,9 @@
-use futures::{Future, Stream};
-use hyper::{Body, Request, Response, StatusCode};
+use iron::mime::Mime;
+use iron::prelude::*;
+use iron::status;
 use serde_json;
-use serde_json::{Value};
 
 use crate::state::State;
-//use crate::util::handle_error;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Setting {
@@ -12,7 +11,7 @@ pub struct Setting {
     value: String
 }
 
-pub fn serve_get_all_settings(state: &State) -> Response<Body> {
+pub fn serve_get_all_settings(state: &State) -> IronResult<Response> {
     let mut stmt = state.connection
         .prepare("SELECT name, value FROM setting")
         .unwrap();
@@ -23,25 +22,19 @@ pub fn serve_get_all_settings(state: &State) -> Response<Body> {
         }).unwrap();
     let settings: Vec<Setting> = settings_iter.map(|item| item.unwrap()).collect();
     let json = serde_json::to_string(&settings).unwrap();
-    let mut response = Response::builder();
-    response.header("Content-Type", "application/json").status(StatusCode::OK);
-    response.body(Body::from(json)).unwrap()
+    let content_type = "application/json".parse::<Mime>().expect("Failed to parse content type");
+    Ok(Response::with((content_type, status::Ok, json)))
 }
 
-pub fn serve_set_all_settings(req: Request<Body>, state: &State) -> Response<Body> {
-    let response = req.into_body().concat2().and_then(|body| {
-        let vec = body.iter().cloned().collect();
-        let stringify = String::from_utf8(vec).unwrap();
-        println!("{}", stringify);
-        let body: Value = serde_json::from_str(stringify.as_str()).unwrap();
-        println!("{:?}", body);
-        //match state.connection.execute("REPLACE INTO setting (name, value) VALUES (?, ?)",&[]) {
-        //    Err(_why) => (),
-        //    Ok(_result) => ()
-        //}
-        let response = Response::new(Body::from(stringify));
-        futures::future::ok(response)
-    });
-    println!("{:?}", response);
-    response.wait().unwrap()
+pub fn serve_set_all_settings(req: &mut Request, _state: &State) -> IronResult<Response> {
+    println!("set all settings");
+    let body = req.get::<bodyparser::Json>();
+    match body {
+        Ok(Some(body)) => println!("Parsed body:\n{:?}", body),
+        Ok(None) => println!("No body"),
+        Err(err) => println!("Error: {:?}", err)
+    }
+    let content_type = "application/json".parse::<Mime>().expect("Failed to parse content type");
+    Ok(Response::with((content_type, status::Ok, "")))
 }
+

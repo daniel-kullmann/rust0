@@ -1,10 +1,10 @@
-use hyper::{Body, Response, StatusCode};
+use iron::prelude::*;
+use iron::status;
 use std::any::Any;
 
-pub fn handle_error(status_code: StatusCode, why: &Any) -> Response<Body> {
-    println!("{:?}", why);
-    let mut response = Response::builder();
-    response.status(status_code);
-    Response::new(Body::from(""))
+pub fn handle_error(status_code: status::Status, why: &Any) -> IronResult<Response> {
+    println!("ERROR: {:?}", why);
+    //panic!("");
+    Ok(Response::with((status_code, "")))
 }
 

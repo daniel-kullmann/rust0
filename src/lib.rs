@@ -1,9 +1,10 @@
+extern crate bodyparser;
 extern crate clap;
-extern crate futures;
-extern crate hyper;
 extern crate ini;
+extern crate iron;
 extern crate r2d2;
 extern crate r2d2_sqlite;
+extern crate reqwest;
 extern crate rusqlite;
 extern crate serde;
 #[macro_use]
