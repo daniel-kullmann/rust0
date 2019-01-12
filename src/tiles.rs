@@ -1,3 +1,4 @@
+use iron::mime::Mime;
 use iron::prelude::*;
 use iron::status;
 use reqwest;
@@ -24,7 +25,8 @@ pub fn serve_tile(uri: &String, state: &State) -> IronResult<Response>
                 Err(why) => handle_error(status::NotFound, &why),
                 Ok(_) => {
                     println!("INFO: Served {}", full_file);
-                    Ok(Response::with((status::Ok, contents)))
+                    let content_type = "image/png".parse::<Mime>().expect("Failed to parse content type");
+                    Ok(Response::with((content_type, status::Ok, contents)))
                 }
             }
         }
@@ -52,7 +54,11 @@ pub fn serve_tile(uri: &String, state: &State) -> IronResult<Response>
 
                             match response.copy_to(&mut buf) {
                                 Err(why) => handle_error(status::NotFound, &why),
-                                Ok(_) => Ok(Response::with((status::Ok, buf))),
+                                Ok(_) => {
+                                    println!("INFO: Served {}", full_file);
+                                    let content_type = "image/png".parse::<Mime>().expect("Failed to parse content type");
+                                    Ok(Response::with((content_type, status::Ok, buf)))
+                                }
                             }
                         }
                     }
