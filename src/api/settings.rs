@@ -43,6 +43,6 @@ pub fn serve_set_all_settings(req: &mut Request, state: &State) -> IronResult<Re
         Err(err) => println!("Error: {:?}", err)
     }
     let content_type = "application/json".parse::<Mime>().expect("Failed to parse content type");
-    Ok(Response::with((content_type, status::Ok, "")))
+    Ok(Response::with((content_type, status::Ok, "[]")))
 }
 
