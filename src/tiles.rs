@@ -2,7 +2,7 @@ use iron::mime::Mime;
 use iron::prelude::*;
 use iron::status;
 use reqwest;
-use std::fs::{File, create_dir_all};
+use std::fs::{File, create_dir_all, metadata};
 use std::io::prelude::*;
 use std::path::Path;
 
@@ -18,19 +18,22 @@ pub fn serve_tile(uri: &String, state: &State) -> IronResult<Response>
     let rest: String = uri.chars().skip(7).collect();
     let full_file = format!("{}/{}", state.config.tile_base, rest);
     println!("file: {}", full_file);
-    match File::open(&full_file) {
-        Ok(mut file) => {
+    let len = metadata(&full_file).map(|v| v.len()).unwrap_or(0);
+    let fh = File::open(&full_file);
+    println!("{}, {:?}", len, fh);
+    match (fh, len) {
+        (Ok(ref mut file), len) if len > 0 => {
             let mut contents = vec![];
             match file.read_to_end(&mut contents) {
                 Err(why) => handle_error(status::NotFound, &why),
                 Ok(_) => {
-                    println!("INFO: Served {}", full_file);
+                    println!("INFO: Served existing {}", full_file);
                     let content_type = "image/png".parse::<Mime>().expect("Failed to parse content type");
                     Ok(Response::with((content_type, status::Ok, contents)))
                 }
             }
         }
-        Err(_) => {
+        (_, _) => {
             let parts: Vec<&str> = uri.split("/").collect();
             match parts.as_slice() {
                 ["", "tiles", s, z, x, y] => {
