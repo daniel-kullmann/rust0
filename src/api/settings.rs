@@ -26,11 +26,21 @@ pub fn serve_get_all_settings(state: &State) -> IronResult<Response> {
     Ok(Response::with((content_type, status::Ok, json)))
 }
 
-pub fn serve_set_all_settings(req: &mut Request, _state: &State) -> IronResult<Response> {
+pub fn serve_set_all_settings(req: &mut Request, state: &State) -> IronResult<Response> {
     println!("set all settings");
     let body = req.get::<bodyparser::Json>();
     match body {
-        Ok(Some(body)) => println!("Parsed body:\n{:?}", body),
+        Ok(Some(body)) => {
+            match body {
+                serde_json::Value::Object(map) => {
+                    for (key, value) in &map {
+                        println!("{}: {}", key, value);
+                        state.connection.execute("REPLACE INTO setting (name, value) VALUES (?, ?)",&[key, &value.to_string().as_str()]).unwrap();
+                    }
+                }
+                _ => ()
+            }
+        },
         Ok(None) => println!("No body"),
         Err(err) => println!("Error: {:?}", err)
     }
