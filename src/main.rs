@@ -1,15 +1,15 @@
 extern crate iron;
 extern crate r2d2_sqlite;
-extern crate rust0;
+extern crate simple_offline_rust_map;
 
 use iron::prelude::*;
 use std::ops::Deref;
 use std::sync::Arc;
 use r2d2_sqlite::SqliteConnectionManager;
 
-use rust0::config::get_config;
-use rust0::server::serve;
-use rust0::state::State;
+use simple_offline_rust_map::config::get_config;
+use simple_offline_rust_map::server::serve;
+use simple_offline_rust_map::state::State;
 
 
 fn main() {
