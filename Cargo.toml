@@ -1,6 +1,6 @@
 [package]
-name = "rust0"
-version = "0.1.0"
+name = "simple-offline-rust-map"
+version = "0.2.0"
 authors = ["Daniel Kullmann <daniel.kullmann@gmx.de>"]
 
 [dependencies]
