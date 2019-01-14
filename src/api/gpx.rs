@@ -1,6 +1,7 @@
 use iron::prelude::*;
 use iron::mime::Mime;
 use iron::status;
+use iron::url::percent_encoding::percent_decode;
 use serde_json;
 use std::fs::{File, read_dir};
 use std::io::prelude::*;
@@ -11,6 +12,7 @@ use crate::util::handle_error;
 pub fn serve_gpx(req: &Request, uri: &String, state: &State) -> IronResult<Response> {
     if uri.starts_with("/api/gpx/get/") {
         let file_name = &uri[13..];
+        let file_name = percent_decode(file_name.as_bytes()).decode_utf8().unwrap();
         let full_file = format!("{}/{}", &state.config.gpx_base, file_name);
         let fh = File::open(full_file);
         match fh {
