@@ -28,7 +28,7 @@ function start_server() {
 
 function stop_server() {
     if test -n "$PID"; then
-        kill "$PID"
+        kill "$PID" || true
         echo "Killed old server"
     fi
 }
