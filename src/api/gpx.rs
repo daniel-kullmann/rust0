@@ -10,6 +10,16 @@ use crate::state::State;
 use crate::util::handle_error;
 use crate::util::json_value_to_string;
 
+#[derive(Debug, Serialize, Deserialize)]
+struct Track {
+    name: String,
+    date: String,
+    description: String,
+    track_points: Vec<(f64, f64)>
+}
+
+
+
 pub fn serve_gpx(req: &Request, uri: &String, state: &State) -> IronResult<Response> {
     if uri.starts_with("/api/gpx/get/") {
         let file_name = &uri[13..];
@@ -50,45 +60,35 @@ pub fn serve_gpx(req: &Request, uri: &String, state: &State) -> IronResult<Respo
 }
 
 pub fn save_gpx(req: &mut Request, state: &State) -> IronResult<Response> {
-    let body = req.get::<bodyparser::Json>();
+    let body = req.get::<bodyparser::Raw>();
     match body {
         Ok(Some(body)) => {
-            println!("{:?}", body);
-            match body {
-                serde_json::Value::Object(map) => {
+            let track: Result<Track, serde_json::Error> = serde_json::from_str(&body);
+            match track {
+                Ok(track) => {
+                    println!("{:?}", track);
+                    let track_points = track.track_points.iter().map(|(lat, lon)| {
+                        format!("<trkpt lat=\"{}\" lon=\"{}\"></trkpt>", lat, lon)
+                    });
+                    let track_points: Vec<String> = track_points.collect();
+                    let track_points = track_points.join("\n      ");
                     let mut content = String::new();
-                    let name = json_value_to_string(&map["name"]);
-                    let desc = json_value_to_string(&map["description"]);
-                    let time = json_value_to_string(&map["date"]);
-                    let track_points = if let serde_json::Value::Array(array) = &map["track_points"] {
-                        array.iter().map(|v| {
-                            if let serde_json::Value::Array(array) = v {
-                                format!("<trkpt lat=\"{}\" lon=\"{}\"></trkpt>", array[0], array[1])
-                            } else {
-                                panic!("Wrong json request body")
-                            }
-                        })
-                    } else {
-                        panic!("Wrong json request body")
-                    };
-                    let track: Vec<String> = track_points.collect();
-                    let track = track.join("\n      ");
                     content.push_str("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
                     content.push_str("<gpx creator=\"maps0\" version=\"1.1\" xmlns=\"http://www.topografix.com/GPX/1/1\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd http://www.garmin.com/xmlschemas/TrackPointExtension/v1 http://www.garmin.com/xmlschemas/TrackPointExtensionv1.xsd http://www.garmin.com/xmlschemas/GpxExtensions/v3 http://www.garmin.com/xmlschemas/GpxExtensionsv3.xsd\" xmlns:gpxtpx=\"http://www.garmin.com/xmlschemas/TrackPointExtension/v1\" xmlns:gpxx=\"http://www.garmin.com/xmlschemas/GpxExtensions/v3\">\n");
                     content.push_str("  <metadata>\n");
-                    content.push_str(&format!("    <name>{}</name>\n", name));
-                    content.push_str(&format!("    <desc>{}</desc>\n", desc));
-                    content.push_str(&format!("    <time>{}</time>\n", time));
+                    content.push_str(&format!("    <name>{}</name>\n", track.name));
+                    content.push_str(&format!("    <desc>{}</desc>\n", track.description));
+                    content.push_str(&format!("    <time>{}</time>\n", track.date));
                     content.push_str("  </metadata>\n");
                     content.push_str("  <trk>\n");
-                    content.push_str(&format!("    <name>{}</name>\n", name));
-                    content.push_str(&format!("    <desc>{}</desc>\n", desc));
+                    content.push_str(&format!("    <name>{}</name>\n", track.name));
+                    content.push_str(&format!("    <desc>{}</desc>\n", track.description));
                     content.push_str("    <trkseg>\n");
-                    content.push_str(&format!("      {}", &track));
+                    content.push_str(&format!("      {}", &track_points));
                     content.push_str("\n    </trkseg>\n");
                     content.push_str("  </trk>\n");
                     content.push_str("</gpx>\n");
-	                  let file_name = format!("{}/{}-{}.gpx", state.config.gpx_base, time, name);
+                    let file_name = format!("{}/{}-{}.gpx", state.config.gpx_base, track.date, track.name);
                     match File::create(&file_name) {
                         Err(why) => handle_error(status::NotFound, &why),
                         Ok(mut file) => {
@@ -97,8 +97,8 @@ pub fn save_gpx(req: &mut Request, state: &State) -> IronResult<Response> {
                             Ok(Response::with((content_type, status::Ok, "[]")))
                         },
                     }
-                }
-                _ => handle_error(status::NotFound, &"Wrong json body")
+                },
+                Err(err) => handle_error(status::NotFound, &err),
             }
         },
         Ok(None) => handle_error(status::NotFound, &"No body"),
