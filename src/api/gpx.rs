@@ -19,7 +19,7 @@ struct Track {
 
 
 
-pub fn serve_gpx(req: &Request, uri: &String, state: &State) -> IronResult<Response> {
+pub fn serve_gpx(req: &mut Request, uri: &String, state: &State) -> IronResult<Response> {
     if uri.starts_with("/api/gpx/get/") {
         let file_name = &uri[13..];
         let file_name = percent_decode(file_name.as_bytes()).decode_utf8().unwrap();
@@ -39,9 +39,7 @@ pub fn serve_gpx(req: &Request, uri: &String, state: &State) -> IronResult<Respo
             }
         }
     } else if uri.starts_with("/api/gpx/save") {
-        // TODO finish code
-        println!("{:?}", req);
-        Ok(Response::with((status::Ok, "gpx save")))
+        save_gpx(req, state)
     } else if uri == "/api/gpx/" {
         match read_dir(&state.config.gpx_base) {
             Err(why) => handle_error(status::NotFound, &why),
@@ -65,7 +63,6 @@ pub fn save_gpx(req: &mut Request, state: &State) -> IronResult<Response> {
             let track: Result<Track, serde_json::Error> = serde_json::from_str(&body);
             match track {
                 Ok(track) => {
-                    println!("{:?}", track);
                     let track_points = track.track_points.iter().map(|(lat, lon)| {
                         format!("<trkpt lat=\"{}\" lon=\"{}\"></trkpt>", lat, lon)
                     });

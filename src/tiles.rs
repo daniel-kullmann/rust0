@@ -17,10 +17,8 @@ pub fn serve_tile(uri: &String, state: &State) -> IronResult<Response>
     }
     let rest: String = uri.chars().skip(7).collect();
     let full_file = format!("{}/{}", state.config.tile_base, rest);
-    println!("file: {}", full_file);
     let len = metadata(&full_file).map(|v| v.len()).unwrap_or(0);
     let fh = File::open(&full_file);
-    println!("{}, {:?}", len, fh);
     match (fh, len) {
         (Ok(ref mut file), len) if len > 0 => {
             let mut contents = vec![];

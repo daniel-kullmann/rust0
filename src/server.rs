@@ -3,7 +3,7 @@ use iron::prelude::*;
 use iron::status;
 use mime_guess::guess_mime_type;
 
-use crate::api::gpx::{save_gpx, serve_gpx};
+use crate::api::gpx::serve_gpx;
 use crate::api::settings::{serve_get_all_settings, serve_set_all_settings};
 use crate::files::file_content;
 use crate::state::State;
@@ -28,8 +28,6 @@ pub fn serve(req: &mut Request, state: &State) -> IronResult<Response> {
     let uri = "/".to_owned() + &req.url.path().join(&"/");
     if uri.starts_with("/tiles") {
         serve_tile(&uri, state)
-    } else if uri.starts_with("/api/gpx/save/") {
-        save_gpx(req, state)
     } else if uri.starts_with("/api/gpx/") {
         serve_gpx(req, &uri, state)
     } else if uri.starts_with("/api/settings/set_all_settings/") {
