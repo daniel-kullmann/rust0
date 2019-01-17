@@ -13,9 +13,12 @@ function wait_for_changes() {
 function start_server() {
     (
         cd "$FILE_BASE"
+
         # Because Emacs runs cargo as well, this cargo will wait for the other
         # cargo to finish. I don't want to wait, so I kill the other rustc process.
+        sleep 0.5
         killall rustc &> /dev/null || true
+
         while ! (cargo build $ARGS); do
             wait_for_changes
             sleep 1
