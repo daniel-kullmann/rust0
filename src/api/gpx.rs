@@ -44,8 +44,8 @@ pub fn serve_gpx(req: &mut Request, uri: &String, state: &State) -> IronResult<R
         match read_dir(&state.config.gpx_base) {
             Err(why) => handle_error(status::NotFound, &why),
             Ok(paths) => {
-                // TODO finish code
-                let paths : Vec<String> = paths.map(|v| v.unwrap().file_name().to_str().unwrap().to_string()).collect();
+                let mut paths : Vec<String> = paths.map(|v| v.unwrap().file_name().to_str().unwrap().to_string()).collect();
+                paths.sort_unstable();
                 let json = serde_json::to_string(&paths).unwrap();
                 let content_type = "application/json".parse::<Mime>().expect("Failed to parse content type");
                 Ok(Response::with((content_type, status::Ok, json)))
