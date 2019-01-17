@@ -15,6 +15,7 @@ use simple_offline_rust_map::state::State;
 fn main() {
 
     let config = Arc::new(get_config());
+    let listen_port = config.clone().listen_port;
 
     let pool = {
         let manager = SqliteConnectionManager::file(&config.db_file);
@@ -31,7 +32,8 @@ fn main() {
         serve(req, &state)
     };
 
-    let _server = Iron::new(service).http("localhost:3000").unwrap();
+    let host_and_port = format!("localhost:{}", listen_port);
+    let _server = Iron::new(service).http(&host_and_port).unwrap();
 
-    println!("server started at http://localhost:3000");
+    println!("server started at {}", host_and_port);
 }
