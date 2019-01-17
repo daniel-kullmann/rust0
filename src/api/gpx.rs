@@ -8,7 +8,6 @@ use std::io::prelude::*;
 
 use crate::state::State;
 use crate::util::handle_error;
-use crate::util::json_value_to_string;
 
 #[derive(Debug, Serialize, Deserialize)]
 struct Track {
