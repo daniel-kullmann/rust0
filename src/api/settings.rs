@@ -6,9 +6,8 @@ use std::collections::HashMap;
 
 use crate::state::State;
 use crate::util::handle_error;
-use crate::util::json_value_to_string;
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug)]
 pub struct Setting {
     name: String,
     value: String
@@ -34,20 +33,20 @@ pub fn serve_get_all_settings(state: &State) -> IronResult<Response> {
 }
 
 pub fn serve_set_all_settings(req: &mut Request, state: &State) -> IronResult<Response> {
-    let body = req.get::<bodyparser::Json>();
-    let content_type = "application/json".parse::<Mime>().expect("Failed to parse content type");
+    let body = req.get::<bodyparser::Raw>();
     match body {
         Ok(Some(body)) => {
+            let content_type = "application/json".parse::<Mime>().expect("Failed to parse content type");
+            let body: Result<HashMap<String, String>, serde_json::Error> = serde_json::from_str(&body);
             match body {
-                serde_json::Value::Object(map) => {
+                Ok(map) => {
                     for (key, value) in &map {
-                        let value: String = json_value_to_string(value);
                         let sql = "REPLACE INTO setting (name, value) VALUES (?, ?)";
-                        state.connection.execute(sql,&[key, &value.as_str()]).unwrap();
+                        state.connection.execute(sql,&[key, value]).unwrap();
                     }
                     Ok(Response::with((content_type, status::Ok, "[]")))
-                }
-                _ => handle_error(status::NotFound, &"json request body not recognized")
+                },
+                Err(err) => handle_error(status::NotFound, &err)
             }
         },
         Ok(None) => handle_error(status::NotFound, &"No body"),
