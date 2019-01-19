@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gpx creator="maps0" version="1.1" xmlns="http://www.topografix.com/GPX/1/1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd http://www.garmin.com/xmlschemas/TrackPointExtension/v1 http://www.garmin.com/xmlschemas/TrackPointExtensionv1.xsd http://www.garmin.com/xmlschemas/GpxExtensions/v3 http://www.garmin.com/xmlschemas/GpxExtensionsv3.xsd" xmlns:gpxtpx="http://www.garmin.com/xmlschemas/TrackPointExtension/v1" xmlns:gpxx="http://www.garmin.com/xmlschemas/GpxExtensions/v3">
+  <metadata>
+    <name>Wanderung-das-Tal-hoch-Rückweg</name>
+    <desc>Oh ja</desc>
+    <time>2019-01-12T16:00:00.078Z</time>
+  </metadata>
+  <trk>
+    <name>Wanderung-das-Tal-hoch-Rückweg</name>
+    <desc>Oh ja</desc>
+    <trkseg>
+      <trkpt lat="37.339318890546224" lon="-8.813781738281252"></trkpt>
+      <trkpt lat="37.347234351336944" lon="-8.78185272216797"></trkpt>
+      <trkpt lat="37.36101617937294" lon="-8.800048828125002"></trkpt>
+      <trkpt lat="37.34791667958219" lon="-8.822879791259767"></trkpt>
+    </trkseg>
+  </trk>
+</gpx>

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gpx creator="maps0" version="1.1" xmlns="http://www.topografix.com/GPX/1/1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd http://www.garmin.com/xmlschemas/TrackPointExtension/v1 http://www.garmin.com/xmlschemas/TrackPointExtensionv1.xsd http://www.garmin.com/xmlschemas/GpxExtensions/v3 http://www.garmin.com/xmlschemas/GpxExtensionsv3.xsd" xmlns:gpxtpx="http://www.garmin.com/xmlschemas/TrackPointExtension/v1" xmlns:gpxx="http://www.garmin.com/xmlschemas/GpxExtensions/v3">
+  <metadata>
+    <name>schiefes-quadrat</name>
+    <desc></desc>
+    <time>2018-12-16T22:45:32.227Z</time>
+  </metadata>
+  <trk>
+    <name>schiefes-quadrat</name>
+    <desc></desc>
+    <trkseg>
+      <trkpt lat="37.360880" lon="-8.816485">
+      </trkpt>
+      <trkpt lat="37.355592" lon="-8.816185">
+      </trkpt>
+      <trkpt lat="37.355354" lon="-8.807001">
+      </trkpt>
+      <trkpt lat="37.360743" lon="-8.807302">
+      </trkpt>
+      <trkpt lat="37.361050" lon="-8.816400">
+      </trkpt>
+    </trkseg>
+  </trk>
+</gpx>
