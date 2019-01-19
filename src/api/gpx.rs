@@ -17,46 +17,52 @@ struct Track {
     track_points: Vec<(f64, f64)>
 }
 
-
-
 pub fn serve_gpx(req: &mut Request, uri: &String, state: &State) -> IronResult<Response> {
     if uri.starts_with("/api/gpx/get/") {
-        let file_name = &uri[13..];
-        let file_name = percent_decode(file_name.as_bytes()).decode_utf8().unwrap();
-        let full_file = format!("{}/{}", &state.config.gpx_base, file_name);
-        let fh = File::open(full_file);
-        match fh {
-            Err(why) => handle_error(status::NotFound, &why),
-            Ok(mut fh) => {
-                let mut content = String::new();
-                match fh.read_to_string(&mut content) {
-                    Err(why) => handle_error(status::NotFound, &why),
-                    Ok(_) => {
-                        let content_type = "text/xml".parse::<Mime>().expect("Failed to parse content type");
-                        Ok(Response::with((content_type, status::Ok, content)))
-                    }
-                }
-            }
-        }
+        serve_get_gpx(uri, state)
     } else if uri.starts_with("/api/gpx/save") {
-        save_gpx(req, state)
+        serve_save_gpx(req, state)
     } else if uri == "/api/gpx/" {
-        match read_dir(&state.config.gpx_base) {
-            Err(why) => handle_error(status::NotFound, &why),
-            Ok(paths) => {
-                let mut paths : Vec<String> = paths.map(|v| v.unwrap().file_name().to_str().unwrap().to_string()).collect();
-                paths.sort_unstable();
-                let json = serde_json::to_string(&paths).unwrap();
-                let content_type = "application/json".parse::<Mime>().expect("Failed to parse content type");
-                Ok(Response::with((content_type, status::Ok, json)))
-            }
-        }
+        serve_list_gpx(state)
     } else {
         Ok(Response::with((status::NotFound, format!("ERROR: request not recognized: {}", uri))))
     }
 }
 
-pub fn save_gpx(req: &mut Request, state: &State) -> IronResult<Response> {
+fn serve_list_gpx(state: &State) -> IronResult<Response> {
+    match read_dir(&state.config.gpx_base) {
+        Err(why) => handle_error(status::NotFound, &why),
+        Ok(paths) => {
+            let mut paths : Vec<String> = paths.map(|v| v.unwrap().file_name().to_str().unwrap().to_string()).collect();
+            paths.sort_unstable();
+            let json = serde_json::to_string(&paths).unwrap();
+            let content_type = "application/json".parse::<Mime>().expect("Failed to parse content type");
+            Ok(Response::with((content_type, status::Ok, json)))
+        }
+    }
+}
+
+fn serve_get_gpx(uri: &String, state: &State) -> IronResult<Response> {
+    let file_name = &uri[13..];
+    let file_name = percent_decode(file_name.as_bytes()).decode_utf8().unwrap();
+    let full_file = format!("{}/{}", &state.config.gpx_base, file_name);
+    let fh = File::open(full_file);
+    match fh {
+        Err(why) => handle_error(status::NotFound, &why),
+        Ok(mut fh) => {
+            let mut content = String::new();
+            match fh.read_to_string(&mut content) {
+                Err(why) => handle_error(status::NotFound, &why),
+                Ok(_) => {
+                    let content_type = "text/xml".parse::<Mime>().expect("Failed to parse content type");
+                    Ok(Response::with((content_type, status::Ok, content)))
+                }
+            }
+        }
+    }
+}
+
+fn serve_save_gpx(req: &mut Request, state: &State) -> IronResult<Response> {
     let body = req.get::<bodyparser::Raw>();
     match body {
         Ok(Some(body)) => {
