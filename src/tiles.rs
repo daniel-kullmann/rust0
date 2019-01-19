@@ -18,6 +18,7 @@ pub fn serve_tile(uri: &String, state: &State) -> IronResult<Response>
         Ok(_) => (),
         Err(e) => println!("Error: {}", e)
     };
+    // The file might be empty. In that case, we download it again
     let len = metadata(&full_file).map(|v| v.len()).unwrap_or(0);
     let fh = File::open(&full_file);
     match (fh, len) {
@@ -52,7 +53,6 @@ pub fn serve_tile(uri: &String, state: &State) -> IronResult<Response>
                                         Err(why) => println!("ERROR: could not save tile file: {:?}", why),
                                         Ok(_) => ()
                                     }
-
                                 }
                             };
 

@@ -6,7 +6,7 @@ use crate::files::serve_static_content;
 use crate::state::State;
 use crate::tiles::serve_tile;
 
-pub fn serve(req: &mut Request, state: &State) -> IronResult<Response> {
+pub fn serve(req: &mut Request, state: &mut State) -> IronResult<Response> {
     let uri = "/".to_owned() + &req.url.path().join(&"/");
     if uri.starts_with("/tiles") {
         serve_tile(&uri, state)

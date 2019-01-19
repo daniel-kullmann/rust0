@@ -25,11 +25,11 @@ fn main() {
     let service = move |req: &mut Request| {
         let pool = pool.clone();
         let config = config.clone();
-        let state = State {
+        let mut state = State {
             config: &config.deref(),
             connection: pool.get().unwrap()
         };
-        serve(req, &state)
+        serve(req, &mut state)
     };
 
     let host_and_port = format!("localhost:{}", listen_port);
