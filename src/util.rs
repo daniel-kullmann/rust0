@@ -1,3 +1,4 @@
+use iron::mime::Mime;
 use iron::prelude::*;
 use iron::status;
 use serde_json::Value;
@@ -21,3 +22,10 @@ pub fn json_value_to_string(json: &Value) -> String {
     }
 }
 
+pub fn content_type_xml() -> Mime {
+    "text/xml".parse::<Mime>().expect("Failed to parse content type")
+}
+
+pub fn content_type_json() -> Mime {
+    "application/json".parse::<Mime>().expect("Failed to parse content type")
+}

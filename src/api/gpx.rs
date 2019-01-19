@@ -1,5 +1,4 @@
 use iron::prelude::*;
-use iron::mime::Mime;
 use iron::status;
 use iron::url::percent_encoding::percent_decode;
 use serde_json;
@@ -7,7 +6,7 @@ use std::fs::{File, read_dir};
 use std::io::prelude::*;
 
 use crate::state::State;
-use crate::util::handle_error;
+use crate::util::{content_type_json, content_type_xml, handle_error};
 
 #[derive(Debug, Serialize, Deserialize)]
 struct Track {
@@ -30,15 +29,12 @@ pub fn serve_gpx(req: &mut Request, uri: &String, state: &State) -> IronResult<R
 }
 
 fn serve_list_gpx(state: &State) -> IronResult<Response> {
-    match read_dir(&state.config.gpx_base) {
-        Err(why) => handle_error(status::NotFound, &why),
-        Ok(paths) => {
-            let mut paths : Vec<String> = paths.map(|v| v.unwrap().file_name().to_str().unwrap().to_string()).collect();
-            paths.sort_unstable();
-            let json = serde_json::to_string(&paths).unwrap();
-            let content_type = "application/json".parse::<Mime>().expect("Failed to parse content type");
+    match list_gpx(&state.config.gpx_base) {
+        Ok(json) => {
+            let content_type = content_type_json();
             Ok(Response::with((content_type, status::Ok, json)))
-        }
+        },
+        Err(why) => handle_error(status::NotFound, &why),
     }
 }
 
@@ -54,7 +50,7 @@ fn serve_get_gpx(uri: &String, state: &State) -> IronResult<Response> {
             match fh.read_to_string(&mut content) {
                 Err(why) => handle_error(status::NotFound, &why),
                 Ok(_) => {
-                    let content_type = "text/xml".parse::<Mime>().expect("Failed to parse content type");
+                    let content_type = content_type_xml();
                     Ok(Response::with((content_type, status::Ok, content)))
                 }
             }
@@ -75,7 +71,7 @@ fn serve_save_gpx(req: &mut Request, state: &State) -> IronResult<Response> {
                         Err(why) => handle_error(status::NotFound, &why),
                         Ok(mut file) => {
                             file.write(content.as_bytes()).unwrap();
-                            let content_type = "application/json".parse::<Mime>().expect("Failed to parse content type");
+                            let content_type = content_type_json();
                             Ok(Response::with((content_type, status::Ok, "[]")))
                         },
                     }
@@ -85,6 +81,26 @@ fn serve_save_gpx(req: &mut Request, state: &State) -> IronResult<Response> {
         },
         Ok(None) => handle_error(status::NotFound, &"No body"),
         Err(err) => handle_error(status::NotFound, &err)
+    }
+}
+
+fn list_gpx(gpx_base: &String) -> Result<String, std::io::Error> {
+    match read_dir(gpx_base) {
+        Err(why) => Err(why),
+        Ok(paths) => {
+            let mut paths : Vec<String> = paths
+                .map(|v| {
+                    v.unwrap()
+                        .file_name()
+                        .to_str()
+                        .unwrap()
+                        .to_string()
+                })
+                .collect();
+            paths.sort_unstable();
+            let json = serde_json::to_string(&paths).unwrap();
+            Ok(json)
+        }
     }
 }
 
@@ -116,7 +132,27 @@ fn create_gpx_content(track: &Track) -> String {
 #[cfg(test)]
 mod tests {
 
-    use super::{Track, create_gpx_content};
+    use super::{Track, create_gpx_content, list_gpx};
+
+    #[test]
+    fn test_list_gpx_1() {
+
+        let result = list_gpx(&String::from("./data/gpx/"));
+        match result {
+            Ok(result) => assert_eq!(result, "[\"2018-11-28T12:00:00.000Z-first-long-hike-in-aljezur-area.gpx\",\"2018-12-15T11:37:32.045Z-walk.with-kids-in-amoreira.gpx\",\"2018-12-15T18:43:03.923Z-walk-between-monteclerigo-and-arrifana.gpx\",\"2018-12-16T22:45:32.227Z-schiefes-quadrat.gpx\",\"2019-01-12T16:00:00.078Z-Wanderung-das-Tal-hoch-Rückweg.gpx\",\"2019-01-12T16:00:00.078Z-aaaa.gpx\"]"),
+            Err(_) => assert!(false),
+        };
+    }
+
+    #[test]
+    fn test_list_gpx_2() {
+
+        let result = list_gpx(&String::from("./data/empty"));
+        match result {
+            Ok(result) => assert_eq!(result, "[]"),
+            Err(_) => assert!(false),
+        };
+    }
 
     #[test]
     fn test_create_gpx_content() {
