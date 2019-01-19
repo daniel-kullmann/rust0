@@ -25,13 +25,13 @@ pub fn serve_settings(req: &mut Request, uri: &String, state: &mut State) -> Iro
     }
 }
 
-pub fn serve_get_all_settings(state: &mut State) -> IronResult<Response> {
+fn serve_get_all_settings(state: &mut State) -> IronResult<Response> {
     let json = get_all_settings(&mut state.connection);
     let content_type = "application/json".parse::<Mime>().expect("Failed to parse content type");
     Ok(Response::with((content_type, status::Ok, json)))
 }
 
-pub fn serve_set_all_settings(req: &mut Request, state: &mut State) -> IronResult<Response> {
+fn serve_set_all_settings(req: &mut Request, state: &mut State) -> IronResult<Response> {
     let body = req.get::<bodyparser::Raw>();
     match body {
         Ok(Some(body)) => {
