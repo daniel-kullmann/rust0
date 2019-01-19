@@ -13,6 +13,16 @@ pub struct Setting {
     value: String
 }
 
+pub fn serve_settings(req: &mut Request, uri: &String, state: &State) -> IronResult<Response> {
+    if uri.starts_with("/api/settings/set_all_settings/") {
+        serve_set_all_settings(req, state)
+    } else if uri.starts_with("/api/settings/") {
+        serve_get_all_settings(state)
+    } else {
+        handle_error(status::NotFound, &format!("Wrong settings uri: {}", uri))
+    }
+}
+
 pub fn serve_get_all_settings(state: &State) -> IronResult<Response> {
     let mut stmt = state.connection
         .prepare("SELECT name, value FROM setting")
