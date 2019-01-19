@@ -106,3 +106,21 @@ fn create_gpx_content(track: &Track) -> String {
     content.push_str("</gpx>\n");
     content
 }
+
+#[cfg(test)]
+mod tests {
+
+    use super::{Track, create_gpx_content};
+
+    #[test]
+    fn test_create_gpx_content() {
+        let track = Track {
+            name: String::from("a name"),
+            date: String::from("a date"),
+            description: String::from("a description"),
+            track_points: vec!((1.0, 2.0), (3.0, 4.0))
+        };
+        let content = create_gpx_content(&track);
+        assert_eq!(content, String::from("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<gpx creator=\"simple-offline-rust-map\" version=\"1.1\" xmlns=\"http://www.topografix.com/GPX/1/1\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd\">\n  <metadata>\n    <name>a name</name>\n    <desc>a description</desc>\n    <time>a date</time>\n  </metadata>\n  <trk>\n    <name>a name</name>\n    <desc>a description</desc>\n    <trkseg>\n      <trkpt lat=\"1\" lon=\"2\"></trkpt>\n      <trkpt lat=\"3\" lon=\"4\"></trkpt>\n    </trkseg>\n  </trk>\n</gpx>\n"));
+    }
+}
