@@ -39,20 +39,26 @@ fn serve_list_gpx(state: &State) -> IronResult<Response> {
 }
 
 fn serve_get_gpx(uri: &String, state: &State) -> IronResult<Response> {
-    let file_name = &uri[13..];
+    match get_gpx(&uri[13..], &state.config.gpx_base) {
+        Ok(content) => {
+            let content_type = content_type_xml();
+            Ok(Response::with((content_type, status::Ok, content)))
+        },
+        Err(why) => handle_error(status::NotFound, &why),
+    }
+}
+
+fn get_gpx(file_name: &str, gpx_base: &String) -> Result<String, std::io::Error> {
     let file_name = percent_decode(file_name.as_bytes()).decode_utf8().unwrap();
-    let full_file = format!("{}/{}", &state.config.gpx_base, file_name);
+    let full_file = format!("{}/{}", gpx_base, file_name);
     let fh = File::open(full_file);
     match fh {
-        Err(why) => handle_error(status::NotFound, &why),
+        Err(why) => Err(why),
         Ok(mut fh) => {
             let mut content = String::new();
             match fh.read_to_string(&mut content) {
-                Err(why) => handle_error(status::NotFound, &why),
-                Ok(_) => {
-                    let content_type = content_type_xml();
-                    Ok(Response::with((content_type, status::Ok, content)))
-                }
+                Err(why) => Err(why),
+                Ok(_) => Ok(content)
             }
         }
     }
