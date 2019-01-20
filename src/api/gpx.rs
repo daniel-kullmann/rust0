@@ -138,7 +138,20 @@ fn create_gpx_content(track: &Track) -> String {
 #[cfg(test)]
 mod tests {
 
-    use super::{Track, create_gpx_content, list_gpx};
+    use super::{Track, create_gpx_content, get_gpx, list_gpx};
+
+    #[test]
+    fn test_get_gpx_1() {
+
+        let result = get_gpx(&"2018-11-28T12:00:00.000Z-first-long-hike-in-aljezur-area.gpx", &String::from("./data/gpx/"));
+        match result {
+            Ok(result) => {
+                println!("{}", result);
+                assert!(result.starts_with(&"<?xml"));
+            },
+            Err(_) => assert!(false),
+        };
+    }
 
     #[test]
     fn test_list_gpx_1() {
